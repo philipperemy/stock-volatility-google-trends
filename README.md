@@ -2,7 +2,7 @@
 Tensorflow/Keras implementation of the paper https://arxiv.org/pdf/1512.04916.pdf
 
 <p align="center">
-  <img src="http://farm4.static.flickr.com/3466/3887194264_ba0d53a005.jpg">
+  <img src="http://farm4.static.flickr.com/3466/3887194264_ba0d53a005.jpg"><br/>
   <i>Trend displayed in Google Domestic Trends</i>
 </p>
 

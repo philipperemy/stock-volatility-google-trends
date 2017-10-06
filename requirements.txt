@@ -1,0 +1,4 @@
+wget==3.2
+numpy==1.13.1
+Keras==2.0.2
+pandas==0.18.1

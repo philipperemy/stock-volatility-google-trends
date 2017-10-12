@@ -78,6 +78,15 @@ def read_trends():
             break
         trends_df_list.append(process_trend(trend))
     full_trend_df = pd.DataFrame(pd.concat(trends_df_list, axis=1))
+    if full_trend_df.isnull().values.any():
+        print(full_trend_df[full_trend_df.isnull().any(axis=1)])
+        full_trend_df.fillna(method='ffill', inplace=True)
+
+        if full_trend_df.isnull().values.any():
+            full_trend_df.fillna(method='bfill', inplace=True)  # we cheat a very bit at the beginning.
+            # we fill gap values by the last values. If we remove lines, we will have gaps in our data
+            # and it's not going to be cool.
+
     assert not full_trend_df.isnull().values.any()
     return full_trend_df
 

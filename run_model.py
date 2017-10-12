@@ -35,26 +35,26 @@ def print_np_arr(x):
 
 class Monitor(Callback):
     def on_epoch_end(self, epoch, logs=None):
-        print(logs)
-
+        # print(logs)
         np.set_printoptions(precision=6, suppress=True)
         num_values_to_predict = 10
         r_idx = randint(a=0, b=len(x_test) - num_values_to_predict)
         print('\n\n')
+        print('_' * 80)
         print('pred  =', print_np_arr(self.model.predict(x_test[r_idx:r_idx + num_values_to_predict]).flatten()))
         print('truth =', print_np_arr(y_test[r_idx:r_idx + num_values_to_predict].flatten()))
+        print('_' * 80)
         print('\n')
 
 
 m = Sequential()
-m.add(LSTM(32, input_shape=(LSTM_WINDOW_SIZE, INPUT_SIZE)))
-# m.add(Dense(32, activation='relu'))
-m.add(Dense(1, activation='relu'))
-
-adam = Adam(lr=0.001 * 0.1)  # 0.1x the usual LR.
+m.add(LSTM(256, input_shape=(LSTM_WINDOW_SIZE, INPUT_SIZE)))
+m.add(Dense(256, activation='tanh'))
+m.add(Dense(1, activation='tanh'))
 
 # PAPER: with mean absolute percent error (MAPE) as the objective loss function
 # PAPER: The model is trained by the 'Adam' method
+adam = Adam(lr=0.001 * 0.1)
 m.compile(optimizer=adam, loss='mape')
 m.summary()
 monitor = Monitor()
@@ -66,5 +66,5 @@ m.fit(x_train, y_train,
       shuffle=True,
       batch_size=32,
       epochs=600,
-      verbose=1)
-# callbacks=[monitor])
+      verbose=1,
+      callbacks=[monitor])

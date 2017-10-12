@@ -10,7 +10,7 @@ Tensorflow/Keras implementation of the paper https://arxiv.org/pdf/1512.04916.pd
 
 Work accomplished so far:
 - [x] End-to-end implementation
-- [ ] Test the data workflow pipeline
+- [x] Test the data workflow pipeline
 - [ ] Sanity check of the model 
 - [ ] Train the models 
 

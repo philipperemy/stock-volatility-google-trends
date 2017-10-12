@@ -58,7 +58,8 @@ m.compile(optimizer=adam, loss='mape')
 monitor = Monitor()
 
 m.fit(x_train, y_train,
-      validation_data=(x_test, y_test),
+      # validation_data=(x_test, y_test),
+      validation_split=0.2,
       shuffle=True,
       batch_size=32,
       epochs=10000,

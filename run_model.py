@@ -8,19 +8,23 @@ from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 from keras.optimizers import Adam
 
+from data_reader import z_score_inv
 from next_batch import LSTM_WINDOW_SIZE, INPUT_SIZE
 from next_batch import get_trainable_data
 
 DATA_FILE = 'data.npz'
 if not os.path.exists(DATA_FILE):
-    (x_train, y_train), (x_test, y_test) = get_trainable_data()
-    np.savez_compressed('data.npz', x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test)
+    (x_train, y_train), (x_test, y_test), sigma_mean, sigma_std = get_trainable_data()
+    np.savez_compressed('data.npz', x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test,
+                        tr_col_mean=sigma_mean, tr_col_std=sigma_std)
 else:
     d = np.load(DATA_FILE)
     x_train = d['x_train']
     y_train = d['y_train']
     x_test = d['x_test']
     y_test = d['y_test']
+    sigma_mean = d['tr_col_mean']
+    sigma_std = d['tr_col_std']
 
 print('x_train.shape =', x_train.shape)
 print('y_train.shape =', y_train.shape)
@@ -33,29 +37,53 @@ def print_np_arr(x):
     return np.array_repr(x).replace('\n', '')
 
 
+def mean_absolute_percentage_error(y_true, y_pred):
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
+
 class Monitor(Callback):
     def on_epoch_end(self, epoch, logs=None):
         # print(logs)
         np.set_printoptions(precision=6, suppress=True)
         num_values_to_predict = 10
-        r_idx = randint(a=0, b=len(x_test) - num_values_to_predict)
+
         print('\n\n')
         print('_' * 80)
-        print('pred  =', print_np_arr(self.model.predict(x_test[r_idx:r_idx + num_values_to_predict]).flatten()))
-        print('truth =', print_np_arr(y_test[r_idx:r_idx + num_values_to_predict].flatten()))
+
+        # TODO: make it with pandas and better.
+        predictions = self.model.predict(x_test)
+        pred_sigmas = [z_score_inv(pred, sigma_mean, sigma_std) for pred in predictions.flatten()]
+        true_sigmas = [z_score_inv(true, sigma_mean, sigma_std) for true in y_test.flatten()]
+        print('MAPE TEST SET = {}'.format(mean_absolute_percentage_error(np.array(true_sigmas),
+                                                                         np.array(pred_sigmas))))
+
+        r_train_idx = randint(a=0, b=len(x_train) - num_values_to_predict)
+        print('pred train  =',
+              print_np_arr(self.model.predict(x_train[r_train_idx:r_train_idx + num_values_to_predict]).flatten()))
+        print('truth train =', print_np_arr(y_train[r_train_idx:r_train_idx + num_values_to_predict].flatten()))
+        r_test_idx = randint(a=0, b=len(x_test) - num_values_to_predict)
+        print('pred  test  =',
+              print_np_arr(self.model.predict(x_test[r_test_idx:r_test_idx + num_values_to_predict]).flatten()))
+        print('truth test  =', print_np_arr(y_test[r_test_idx:r_test_idx + num_values_to_predict].flatten()))
         print('_' * 80)
         print('\n')
 
 
 m = Sequential()
 m.add(LSTM(256, input_shape=(LSTM_WINDOW_SIZE, INPUT_SIZE)))
-m.add(Dense(256, activation='tanh'))
-m.add(Dense(1, activation='tanh'))
+m.add(Dense(128, activation='tanh'))
+m.add(Dense(128, activation='tanh'))
+m.add(Dense(1, activation='linear'))
+
+
+def loss(y_pred, y_true):
+    import keras.backend as K
+    return K.mean(K.square(y_pred - y_true), axis=-1)
+
 
 # PAPER: with mean absolute percent error (MAPE) as the objective loss function
 # PAPER: The model is trained by the 'Adam' method
-adam = Adam(lr=0.001 * 0.1)
-m.compile(optimizer=adam, loss='mape')
+m.compile(optimizer=Adam(lr=0.001 * 0.01), loss='mape')  # mape
 m.summary()
 monitor = Monitor()
 

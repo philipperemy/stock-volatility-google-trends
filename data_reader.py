@@ -116,8 +116,12 @@ def split_training_test(df):
     return training_df, testing_df
 
 
-def z_score(x, mean=None, std=None):
+def z_score(x, mean, std):
     return (x - mean.values) / std.values  # testing set.
+
+
+def z_score_inv(x, mean, std):
+    return x * std + mean
 
 
 def apply_z_score_to_data_frame(df, mean, std):
@@ -162,7 +166,7 @@ def process():
     tr_col_mean, tr_col_std = np.mean(tr), np.std(tr)  # correct
     tr = apply_the_transforms(tr, tr_col_mean, tr_col_std)
     te = apply_the_transforms(te, tr_col_mean, tr_col_std)
-    return tr, te
+    return tr, te, tr_col_mean['sigma'], tr_col_std['sigma']
 
 
 if __name__ == '__main__':

@@ -76,14 +76,14 @@ def df_to_keras_format(df):
 
 
 def get_trainable_data():
-    tr, te = process()
+    tr, te, sigma_mean, sigma_std = process()
     print(tr.head())
     print(te.head())
 
     x_train, y_train = df_to_keras_format(tr)
     x_test, y_test = df_to_keras_format(te)
 
-    return (x_train, y_train), (x_test, y_test)
+    return (x_train, y_train), (x_test, y_test), sigma_mean, sigma_std
 
 
 if __name__ == '__main__':

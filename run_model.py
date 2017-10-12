@@ -56,7 +56,7 @@ adam = Adam(lr=0.001 * 0.1)  # 0.1x the usual LR.
 # PAPER: with mean absolute percent error (MAPE) as the objective loss function
 # PAPER: The model is trained by the 'Adam' method
 m.compile(optimizer=adam, loss='mape')
-
+m.summary()
 monitor = Monitor()
 
 # PAPER: with 32 examples in a batch
@@ -66,4 +66,5 @@ m.fit(x_train, y_train,
       shuffle=True,
       batch_size=32,
       epochs=600,
-      verbose=0)
+      verbose=1)
+# callbacks=[monitor])

@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 from data_reader import process
@@ -35,11 +37,16 @@ PREDICTORS = ['returns',
               'Trend TRAVEL',
               'Trend UNEMPL']
 
+if 'DEBUG' in os.environ:
+    PREDICTORS = PREDICTORS[0:5]
+    print('DEBUG we truncate the predictors because we dont consider all the trends.')
+    print(PREDICTORS)
+
 INPUT_SIZE = len(PREDICTORS)
 
 
 def chunker(seq, size):
-    return [(seq[pos:pos + size], seq[pos + size:pos + size + 1]) for pos in range(0, len(seq), 1)]  # 1 here after.
+    return [(seq[pos:pos + size], seq[pos + size:pos + size + 1]) for pos in range(0, len(seq), 1)]
 
 
 def df_to_keras_format(df):
@@ -51,6 +58,7 @@ def df_to_keras_format(df):
 
         # filter on predictors
         x = x[PREDICTORS]
+        y = y[PREDICTORS]
 
         print(x)
         print(y)
@@ -59,8 +67,8 @@ def df_to_keras_format(df):
         y_new = y['sigma'].values
 
         if len(x_new) == LSTM_WINDOW_SIZE and len(y_new) == 1:
-            keras_x.append(x.values)
-            keras_y.append(y['sigma'].values)
+            keras_x.append(x_new)
+            keras_y.append(y_new)
 
     keras_x = np.array(keras_x)
     keras_y = np.array(keras_y)

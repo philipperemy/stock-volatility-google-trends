@@ -2,7 +2,9 @@ import numpy as np
 
 from data_reader import process
 
+# PAPER: Specifically, we set up the maximum lag of the LSTM to include 10 successive observations
 LSTM_WINDOW_SIZE = 10
+
 PREDICTORS = ['returns',
               'sigma',
               'Trend ADVERT',

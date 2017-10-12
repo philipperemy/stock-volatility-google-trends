@@ -66,4 +66,4 @@ m.fit(x_train, y_train,
       shuffle=True,
       batch_size=32,
       epochs=600,
-      verbose=1)
+      verbose=0)

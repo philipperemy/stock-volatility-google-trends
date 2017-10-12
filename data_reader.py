@@ -101,21 +101,26 @@ def split_training_test(df):
     return training_df, testing_df
 
 
-def apply_transform(df):
-    # we only support those values. They are given by the paper.
+def z_score(x, mean=None, std=None):
+    if mean is None or std is None:
+        return (x - np.mean(x)) / np.std(x)  # training set
+    else:
+        return (x - mean.values) / std.values  # testing set.
 
 
-    def z_score(x):
-        return (x - np.mean(x)) / np.std(x)
-
-    print(df.head())
-    df2 = df.apply(lambda x: z_score(x), axis=0)
+def apply_z_score_to_data_frame(df, mean=None, std=None):
+    df2 = df.apply(lambda x: z_score(x, mean, std), axis=1)
     df2['returns'] = df['returns']  # preserve them for now
     df2['sigma'] = df['sigma']
-    print(df2.head())
+    return df
 
+
+def apply_transform(df, mean_per_column=None, std_per_column=None):
+    df2 = apply_z_score_to_data_frame(df, mean_per_column, std_per_column)
+
+    # we only support those values. They are given by the paper.
     delta_t = 3
-    # df3 = pd.rolling_mean(df2, window=delta_t)
+    # df3 = pd.rolling_mean(df2, window=delta_t) deprecated.
     df3 = df2.rolling(window=delta_t, center=False).mean()
 
     # for returns (SUM)
@@ -129,11 +134,12 @@ def apply_transform(df):
 
 def process():
     df = read_all()
-    df = apply_transform(df)
     tr, te = split_training_test(df)
+    tr_mean, tr_std = np.mean(tr), np.std(tr)
+    tr = apply_transform(tr)
+    te = apply_transform(te, tr_mean, tr_std)
     return tr, te
 
 
 if __name__ == '__main__':
-    r = read_all()
-    apply_transform(r)
+    process()

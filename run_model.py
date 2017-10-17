@@ -1,6 +1,7 @@
 import os
 from random import randint
 
+import keras.backend as K
 import numpy as np
 from keras.callbacks import Callback
 from keras.layers import Dense
@@ -43,7 +44,6 @@ def mean_absolute_percentage_error(y_true, y_pred):
 
 class Monitor(Callback):
     def on_epoch_end(self, epoch, logs=None):
-        # print(logs)
         np.set_printoptions(precision=6, suppress=True)
         num_values_to_predict = 10
 
@@ -54,8 +54,10 @@ class Monitor(Callback):
         predictions = self.model.predict(x_test)
         pred_sigmas = [z_score_inv(pred, sigma_mean, sigma_std) for pred in predictions.flatten()]
         true_sigmas = [z_score_inv(true, sigma_mean, sigma_std) for true in y_test.flatten()]
-        print('MAPE TEST SET = {}'.format(mean_absolute_percentage_error(np.array(true_sigmas),
-                                                                         np.array(pred_sigmas))))
+        print('MAPE TEST MODEL = {0}'.format(mean_absolute_percentage_error(np.array(true_sigmas),
+                                                                            np.array(pred_sigmas))))
+        print('MAPE DUMMY MODEL = {0}'.format(mean_absolute_percentage_error(np.array(true_sigmas),
+                                                                             np.roll(np.array(true_sigmas), shift=1))))
 
         r_train_idx = randint(a=0, b=len(x_train) - num_values_to_predict)
         print('pred train  =',
@@ -71,19 +73,16 @@ class Monitor(Callback):
 
 m = Sequential()
 m.add(LSTM(256, input_shape=(LSTM_WINDOW_SIZE, INPUT_SIZE)))
-m.add(Dense(128, activation='tanh'))
-m.add(Dense(128, activation='tanh'))
 m.add(Dense(1, activation='linear'))
 
 
 def loss(y_pred, y_true):
-    import keras.backend as K
     return K.mean(K.square(y_pred - y_true), axis=-1)
 
 
 # PAPER: with mean absolute percent error (MAPE) as the objective loss function
 # PAPER: The model is trained by the 'Adam' method
-m.compile(optimizer=Adam(lr=0.001 * 0.01), loss='mape')  # mape
+m.compile(optimizer=Adam(lr=0.001), loss='mape')  # mape
 m.summary()
 monitor = Monitor()
 

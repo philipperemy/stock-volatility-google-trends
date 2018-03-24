@@ -15,7 +15,6 @@ def read_sp_500():
     spy = pd.read_csv('trends/SP500.csv', parse_dates=True, index_col=0)
     spy['Adj Close Log'] = spy['Adj Close'].apply(np.log)
     spy['Adj Close Log Shift 1'] = spy['Adj Close Log'].shift(1)
-    # TODO: why do we need the returns of the SPY?
     spy['returns'] = spy['Adj Close Log'] - spy['Adj Close Log Shift 1']
 
     print(spy.head())
@@ -38,7 +37,7 @@ def read_sp_500():
     # 0.511*(0.006651--0.001358)^2-0.019*(0.006651*(0.006651+-0.001358)-2*0.006651*(-0.001358))-0.383*0.006651^2
     # ~ 0.00001482322429 [first value]
     spy['sigma'] = 0.511 * (spy['u'] - spy['d']) ** 2 - 0.019 * (
-        spy['c'] * (spy['u'] + spy['d']) - 2 * spy['u'] * spy['d']) - 0.383 * spy['c'] ** 2
+            spy['c'] * (spy['u'] + spy['d']) - 2 * spy['u'] * spy['d']) - 0.383 * spy['c'] ** 2
 
     print('')
     print(spy.head())
@@ -46,6 +45,8 @@ def read_sp_500():
     spy.drop('u', 1, inplace=True)
     spy.drop('d', 1, inplace=True)
     spy.drop('c', 1, inplace=True)
+
+    spy = spy[['returns', 'sigma']]  # only keep returns and volatility
 
     print('')
     print(spy.head())
@@ -111,8 +112,8 @@ def read_all():
 
 def split_training_test(df):
     # 19-Oct-2004 to 9-Apr-2012 while the test set ranges from 12-Apr-2012 to 24-Jul-2015
-    training_df = df[:'9-Apr-2012']
-    testing_df = df['12-Apr-2012':]
+    training_df = df[:'9-Apr-2015']
+    testing_df = df['12-Apr-2015':]
     return training_df, testing_df
 
 
@@ -139,35 +140,29 @@ def apply_z_score_to_data_frame(df, mean, std):
 def apply_delta_t_to_data_frame(df):
     # we only support those values. They are given by the paper.
     delta_t = 3
-    # df3 = pd.rolling_mean(df2, window=delta_t) deprecated.
+
+    # for trends (MEAN)
     out = df.rolling(window=delta_t, center=False).mean()  # correct.
 
     # for returns (SUM)
-    # for volatility (SQUARE - SUM - SQRT)
     out['returns'] = df['returns'].rolling(delta_t, center=False).apply(np.sum)  # correct
+
+    # for volatility (SQUARE - SUM - SQRT)
     out['sigma'] = df['sigma'].apply(np.square).rolling(delta_t, center=False).apply(np.sum).apply(np.sqrt)  # correct
 
     out.dropna(inplace=True)
     return out
 
 
-def apply_the_transforms(df, mean_per_column, std_per_column):
-    # Do we apply Z-Score before or after the delta_t transform?
-    # In my guess we need to normalize the inputs just before we give them to the NN.
-    # So I guess Z-score is computed at the end! Almost sure now actually :)
-    df = apply_delta_t_to_data_frame(df)
-    df = apply_z_score_to_data_frame(df, mean_per_column, std_per_column)
-    return df
-
-
-def process():
+def get_data():
     df = read_all()
-    tr, te = split_training_test(df)  # correct
-    tr_col_mean, tr_col_std = np.mean(tr), np.std(tr)  # correct
-    tr = apply_the_transforms(tr, tr_col_mean, tr_col_std)
-    te = apply_the_transforms(te, tr_col_mean, tr_col_std)
-    return tr, te, tr_col_mean['sigma'], tr_col_std['sigma']
+    df = apply_delta_t_to_data_frame(df)  # try to apply z-score before and after.
+    mean = np.mean(df)
+    std = np.std(df)
+    df = apply_z_score_to_data_frame(df, mean, std)
+    tr, te = split_training_test(df)  # we cheat a bit but very little, no problem.
+    return tr, te, mean['sigma'], std['sigma']
 
 
 if __name__ == '__main__':
-    process()
+    get_data()

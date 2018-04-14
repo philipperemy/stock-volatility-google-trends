@@ -4,7 +4,7 @@ import keras.backend as K
 import matplotlib.pyplot as plt
 import numpy as np
 from keras.callbacks import Callback
-from keras.layers import Dense, Dropout
+from keras.layers import Dense
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 from keras.optimizers import Adam
@@ -54,8 +54,8 @@ class Monitor(Callback):
     def on_epoch_end(self, epoch, logs=None):
         np.set_printoptions(precision=6, suppress=True)
 
-        print('\n\n')
-        print('_' * 80)
+        # print('\n\n')
+        # print('_' * 80)
 
         # TODO: make it with pandas and better.
         predictions = self.model.predict(self.inputs)
@@ -71,10 +71,11 @@ class Monitor(Callback):
             plt.pause(0.001)
             plt.show()
 
-        print('MAPE TEST MODEL = {0}'.format(mean_absolute_percentage_error(np.array(true_sigmas),
-                                                                            np.array(pred_sigmas))))
-        print('MAPE DUMMY MODEL = {0}'.format(mean_absolute_percentage_error(np.array(true_sigmas),
-                                                                             np.array(dummy_sigmas))))
+        test_mape = mean_absolute_percentage_error(np.array(true_sigmas), np.array(pred_sigmas))
+        dummy_mape = mean_absolute_percentage_error(np.array(true_sigmas), np.array(dummy_sigmas))
+        print('[{0}] test = {1:.3f}, test_dummy = {2:.3f}, '
+              'train = {3:.3f}, val = {4:.3f}.'.format(str(epoch).zfill(4), test_mape, dummy_mape,
+                                                       logs['loss'], logs['val_loss']))
         # num_values_to_predict = 10
         # r_train_idx = randint(a=0, b=len(x_train) - num_values_to_predict)
         # print('pred train  =',
@@ -129,7 +130,7 @@ for until_predictor_id in range(0, len(PREDICTORS)):
               shuffle=True,
               batch_size=32,
               epochs=600,
-              verbose=1,
+              verbose=0,
               callbacks=[monitor])
 
         print('Learning rate was {}'.format(K.get_value(m.optimizer.lr)))

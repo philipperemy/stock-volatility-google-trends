@@ -4,7 +4,7 @@ import keras.backend as K
 import matplotlib.pyplot as plt
 import numpy as np
 from keras.callbacks import Callback
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 from keras.optimizers import Adam
@@ -12,6 +12,8 @@ from keras.optimizers import Adam
 from data_reader import z_score_inv
 from next_batch import LSTM_WINDOW_SIZE, INPUT_SIZE, PREDICTORS
 from next_batch import get_trainable_data
+
+# set DISPLAY=0;
 
 plt.ion()
 
@@ -62,11 +64,12 @@ class Monitor(Callback):
         true_sigmas = [z_score_inv(true, mean, std) for true in y_test.flatten()]
         dummy_sigmas = [z_score_inv(dummy, mean, std) for dummy in np.roll(y_test.flatten(), shift=1)]
 
-        plt.clf()
-        plt.plot(true_sigmas, color='blue')
-        plt.plot(pred_sigmas, color='lime')
-        plt.pause(0.001)
-        plt.show()
+        if 'DISPLAY' not in os.environ:
+            plt.clf()
+            plt.plot(true_sigmas, color='blue')
+            plt.plot(pred_sigmas, color='lime')
+            plt.pause(0.001)
+            plt.show()
 
         print('MAPE TEST MODEL = {0}'.format(mean_absolute_percentage_error(np.array(true_sigmas),
                                                                             np.array(pred_sigmas))))
@@ -86,8 +89,9 @@ class Monitor(Callback):
 
 
 m = Sequential()
-m.add(LSTM(4, input_shape=(LSTM_WINDOW_SIZE, INPUT_SIZE)))
-m.add(Dense(4, activation='sigmoid'))
+m.add(LSTM(32, input_shape=(LSTM_WINDOW_SIZE, INPUT_SIZE)))
+m.add(Dense(16, activation='sigmoid'))
+# m.add(Dropout(0.3))
 m.add(Dense(1, activation='linear'))
 
 
@@ -100,7 +104,7 @@ def sigma_loss(y_true, y_pred):
     return K.mean(K.abs(real_y_true - real_y_pred) / real_y_true) * 100
 
 
-m.compile(optimizer=Adam(lr=0.001), loss=sigma_loss)  # mape
+m.compile(optimizer=Adam(lr=0.0001), loss=sigma_loss)  # mape
 m.summary()
 
 for until_predictor_id in range(0, len(PREDICTORS)):
@@ -123,8 +127,13 @@ for until_predictor_id in range(0, len(PREDICTORS)):
               validation_split=0.2,
               shuffle=True,
               batch_size=32,
-              epochs=200,
+              epochs=600,
               verbose=1,
               callbacks=[monitor])
+
+        print('Learning rate was {}'.format(K.get_value(m.optimizer.lr)))
+        K.set_value(m.optimizer.lr, K.get_value(m.optimizer.lr) * 0.5)
+        print('Learning rate is now {}'.format(K.get_value(m.optimizer.lr)))
+
     except KeyboardInterrupt:
         print('Received KeyboardInterrupt. Going to add the next predictor.')

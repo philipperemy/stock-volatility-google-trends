@@ -8,25 +8,28 @@ from data_reader import get_data
 # PAPER: Specifically, we set up the maximum lag of the LSTM to include 10 successive observations
 LSTM_WINDOW_SIZE = 10
 
+# sigma, returns, comput, crcard, invest, bnkrpt are the most useful predictors.
+# because we use mask, we start by sigma first then we add returns, then comput and so forth.
+
 PREDICTORS = ['sigma',
               'returns',
-              'Trend ADVERT',
+              'Trend COMPUT',
+              'Trend CRCARD',
+              'Trend INVEST',
+              'Trend BNKRPT',
               'Trend AIRTVL',
+              'Trend ADVERT',
               'Trend AUTO',
               'Trend AUTOBY',
               'Trend AUTOFI',
               'Trend BIZIND',
-              'Trend BNKRPT',
               'Trend COMLND',
-              'Trend COMPUT',
               'Trend CONSTR',
-              'Trend CRCARD',
               'Trend DURBLE',
               'Trend EDUCAT',
               'Trend FINPLN',
               'Trend FURNTR',
               'Trend INSUR',
-              'Trend INVEST',
               'Trend JOBS',
               'Trend LUXURY',
               'Trend MOBILE',

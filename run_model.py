@@ -90,8 +90,9 @@ class Monitor(Callback):
 
 m = Sequential()
 m.add(LSTM(32, input_shape=(LSTM_WINDOW_SIZE, INPUT_SIZE)))
+# m.add(Dropout(0.1))
 m.add(Dense(16, activation='sigmoid'))
-# m.add(Dropout(0.3))
+# m.add(Dropout(0.1))
 m.add(Dense(1, activation='linear'))
 
 

@@ -10,7 +10,7 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 
 from data_reader import z_score_inv
-from next_batch import LSTM_WINDOW_SIZE, INPUT_SIZE
+from next_batch import LSTM_WINDOW_SIZE, INPUT_SIZE, PREDICTORS
 from next_batch import get_trainable_data
 
 plt.ion()
@@ -45,6 +45,10 @@ def mean_absolute_percentage_error(y_true, y_pred):
 
 
 class Monitor(Callback):
+
+    def __init__(self, inputs):
+        self.inputs = inputs
+
     def on_epoch_end(self, epoch, logs=None):
         np.set_printoptions(precision=6, suppress=True)
 
@@ -52,7 +56,7 @@ class Monitor(Callback):
         print('_' * 80)
 
         # TODO: make it with pandas and better.
-        predictions = self.model.predict(x_test)
+        predictions = self.model.predict(self.inputs)
         # TODO: should be the mean_sigma of std_sigma only
         pred_sigmas = [z_score_inv(pred, mean, std) for pred in predictions.flatten()]
         true_sigmas = [z_score_inv(true, mean, std) for true in y_test.flatten()]
@@ -98,14 +102,29 @@ def sigma_loss(y_true, y_pred):
 
 m.compile(optimizer=Adam(lr=0.001), loss=sigma_loss)  # mape
 m.summary()
-monitor = Monitor()
 
-# PAPER: with 32 examples in a batch
-# PAPER:  This can be achieved after roughly 600 epochs.
-m.fit(x_train, y_train,
-      validation_split=0.2,
-      shuffle=True,
-      batch_size=32,
-      epochs=600,
-      verbose=1,
-      callbacks=[monitor])
+for until_predictor_id in range(0, len(PREDICTORS)):
+
+    try:
+        print('Now we have {}/{} predictors.'.format(until_predictor_id + 1, len(PREDICTORS)))
+        mask_train = np.zeros_like(x_train)
+        mask_test = np.zeros_like(x_test)
+
+        mask_train[:, :, 0:until_predictor_id + 1] = 1.0
+        mask_test[:, :, 0:until_predictor_id + 1] = 1.0
+
+        x_train_masked = x_train * mask_train
+        x_test_masked = x_test * mask_test
+
+        # PAPER: with 32 examples in a batch
+        # PAPER:  This can be achieved after roughly 600 epochs.
+        monitor = Monitor(inputs=x_test_masked)
+        m.fit(x_train_masked, y_train,
+              validation_split=0.2,
+              shuffle=True,
+              batch_size=32,
+              epochs=200,
+              verbose=1,
+              callbacks=[monitor])
+    except KeyboardInterrupt:
+        print('Received KeyboardInterrupt. Going to add the next predictor.')

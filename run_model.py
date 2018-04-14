@@ -133,9 +133,9 @@ for until_predictor_id in range(0, len(PREDICTORS)):
               verbose=0,
               callbacks=[monitor])
 
-        print('Learning rate was {}'.format(K.get_value(m.optimizer.lr)))
-        K.set_value(m.optimizer.lr, K.get_value(m.optimizer.lr) * 0.5)
-        print('Learning rate is now {}'.format(K.get_value(m.optimizer.lr)))
+        # print('Learning rate was {}'.format(K.get_value(m.optimizer.lr)))
+        # K.set_value(m.optimizer.lr, K.get_value(m.optimizer.lr) * 0.5)
+        # print('Learning rate is now {}'.format(K.get_value(m.optimizer.lr)))
 
     except KeyboardInterrupt:
         print('Received KeyboardInterrupt. Going to add the next predictor.')

@@ -18,8 +18,10 @@ Work accomplished so far:
 
 <p align="center">
   <img src="assets/overfit.png"><br/>
-  <i>A new predictor is added every 600 epochs.</i>
+  <i>MAPE of the train, val and test along with dummy (benchmark future value = last value)</i>
 </p>
+
+A new predictor is added every 600 epochs.
 
 At 600 epochs, the second predictor is added. At 1200, the third, 1800 the fourth, 2400 the fifth.
 

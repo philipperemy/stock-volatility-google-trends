@@ -10,10 +10,13 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 
 from data_reader import z_score_inv
+from file_logger import FileLogger
 from next_batch import LSTM_WINDOW_SIZE, INPUT_SIZE, PREDICTORS
 from next_batch import get_trainable_data
 
 # set DISPLAY=0;
+
+f = FileLogger('/tmp/out.tsv', ['step', 'test', 'dummy', 'train', 'val'])
 
 plt.ion()
 
@@ -76,6 +79,7 @@ class Monitor(Callback):
         print('[{0}] test = {1:.3f}, test_dummy = {2:.3f}, '
               'train = {3:.3f}, val = {4:.3f}.'.format(str(epoch).zfill(4), test_mape, dummy_mape,
                                                        logs['loss'], logs['val_loss']))
+        f.write([str(epoch).zfill(4), test_mape, dummy_mape, logs['loss'], logs['val_loss']])
         # num_values_to_predict = 10
         # r_train_idx = randint(a=0, b=len(x_train) - num_values_to_predict)
         # print('pred train  =',
@@ -91,9 +95,9 @@ class Monitor(Callback):
 
 m = Sequential()
 m.add(LSTM(32, input_shape=(LSTM_WINDOW_SIZE, INPUT_SIZE)))
-# m.add(Dropout(0.1))
-m.add(Dense(16, activation='sigmoid'))
-# m.add(Dropout(0.1))
+# m.add(Dropout(0.2))
+# m.add(Dense(16, activation='sigmoid'))
+# m.add(Dropout(0.2))
 m.add(Dense(1, activation='linear'))
 
 
@@ -125,13 +129,16 @@ for until_predictor_id in range(0, len(PREDICTORS)):
         # PAPER: with 32 examples in a batch
         # PAPER:  This can be achieved after roughly 600 epochs.
         monitor = Monitor(inputs=x_test_masked)
+        num_epochs = 2400
+        start_epoch = num_epochs * until_predictor_id
         m.fit(x_train_masked, y_train,
               validation_split=0.2,
               shuffle=True,
               batch_size=32,
-              epochs=600,
+              epochs=start_epoch + num_epochs,
               verbose=0,
-              callbacks=[monitor])
+              callbacks=[monitor],
+              initial_epoch=start_epoch)
 
         # print('Learning rate was {}'.format(K.get_value(m.optimizer.lr)))
         # K.set_value(m.optimizer.lr, K.get_value(m.optimizer.lr) * 0.5)

@@ -11,9 +11,19 @@ Tensorflow/Keras implementation of the paper https://arxiv.org/pdf/1512.04916.pd
 Work accomplished so far:
 - [x] End-to-end implementation
 - [x] Test the data workflow pipeline
-- [ ] Sanity check of the model 
-- [ ] Train the models 
+- [x] Sanity check of the model 
+- [x] Train the models 
 
+## Plot
+
+<p align="center">
+  <img src="assets/overfit.png"><br/>
+  <i>A new predictor is added every 600 epochs.</i>
+</p>
+
+At 600 epochs, the second predictor is added. At 1200, the third, 1800 the fourth, 2400 the fifth.
+
+We realize that we start to overfit after more than 5 predictors. The dataset is indeed incredibly small.
 
 ## How to run it?
 ```

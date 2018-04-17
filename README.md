@@ -27,6 +27,13 @@ At 600 epochs, the second predictor is added. At 1200, the third, 1800 the fourt
 
 We realize that we start to overfit after more than 5 predictors. The dataset is indeed incredibly small.
 
+The 5 predictors are:
+- sigma
+- returns
+- Trend COMPUT
+- Trend CRCARD
+- Trend INVEST
+
 ## How to run it?
 ```
 git clone https://github.com/philipperemy/stock-volatility-google-trends.git svgt

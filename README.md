@@ -39,7 +39,7 @@ As a summary, the 5 best predictors are:
 As a conclusion, I'm a bit curious to know how they trained a model with 30 predictors on a such tiny dataset. They don't mention any information related to the model. It's just composed of a LSTM layer. I'm also a bit skeptical about this approach in general.
 
 ## How to run it?
-```
+```bash
 # might require python3.6.
 git clone https://github.com/philipperemy/stock-volatility-google-trends.git svgt
 cd svgt

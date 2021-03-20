@@ -1,5 +1,5 @@
 # Deep Learning Stock Volatility with Google Domestic Trends
-Tensorflow/Keras implementation of the paper https://arxiv.org/pdf/1512.04916.pdf
+Tensorflow/Keras implementation of the [[paper](https://arxiv.org/abs/1512.04916)]].
 
 <p align="center">
   <img src="http://farm4.static.flickr.com/3466/3887194264_ba0d53a005.jpg"><br/>
